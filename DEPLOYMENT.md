@@ -7,38 +7,36 @@
 - Mobile render: PASS
 - Internal-link audit: PASS
 - Static security headers: PASS
-- Public deployment: NOT YET CONNECTED — owner review and Cloudflare setup remain pending
+- Cloudflare Pages project: CONNECTED
+- Preview deployment: TRIGGERED FROM FEATURE BRANCH
+- Production merge: NOT YET APPROVED
+- Custom domain: NOT YET ATTACHED
 - PDS/DNS change: NONE
 
 ## Target
 
 - Repository: `olawaleayeni1268/unusuals-network-website`
 - Production branch: `main`
+- Preview branch: `feat/corporate-website-v1-photo-hero`
 - Hosting: Cloudflare Pages
 - Production hostname: `www.unusuals.worldofchampionsnetwork.com.ng`
 
-## GitHub import
+## Cloudflare Pages configuration
 
-Create an empty GitHub repository named `unusuals-network-website` under `olawaleayeni1268`. Do not add starter files if importing this source as-is.
-
-After the repository exists, push this source tree to `main` or create an initial review branch and pull request.
-
-## Cloudflare Pages
-
-After owner review and explicit deployment approval:
-
-1. Create a Pages project connected to the website repository.
-2. Use `main` as the production branch.
-3. No framework preset is required.
-4. No build command is required.
-5. Use the repository root as the static output.
-6. Add the custom domain `www.unusuals.worldofchampionsnetwork.com.ng` through the Pages custom-domain workflow.
-7. Do not alter the existing `unusuals.worldofchampionsnetwork.com.ng` PDS host.
+1. Pages project is connected to the website repository.
+2. Production branch is `main`.
+3. Framework preset is `None`.
+4. Build command is blank.
+5. Build output directory is `.` (repository root).
+6. The feature branch is used for owner preview before merge.
+7. Do not attach `www.unusuals.worldofchampionsnetwork.com.ng` until owner visual acceptance.
+8. Do not alter the existing `unusuals.worldofchampionsnetwork.com.ng` PDS host.
 
 ## Post-deployment verification
 
 - HTTPS valid
 - Home/About/Unusu@ls/Contact/Privacy/Terms return 200
+- Approved photo hero renders correctly
 - Mobile navigation works
 - `robots.txt` and `sitemap.xml` return 200
 - Security headers are present
