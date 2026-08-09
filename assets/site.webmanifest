@@ -1,0 +1,9 @@
+{
+  "name": "Unusuals Network",
+  "short_name": "Unusuals Network",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090b10",
+  "theme_color": "#090b10",
+  "icons": []
+}
