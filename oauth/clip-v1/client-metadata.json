@@ -1,0 +1,19 @@
+{
+  "client_id": "https://clip-oauth-v1.unusuals-network-website.pages.dev/oauth/clip-v1/client-metadata.json",
+  "client_name": "CLIP V1 Owner Test",
+  "client_uri": "https://clip-oauth-v1.unusuals-network-website.pages.dev/",
+  "application_type": "native",
+  "redirect_uris": [
+    "dev.pages.unusuals-network-website.clip-oauth-v1:/oauth-callback"
+  ],
+  "grant_types": [
+    "authorization_code",
+    "refresh_token"
+  ],
+  "response_types": [
+    "code"
+  ],
+  "scope": "atproto transition:generic transition:chat.bsky",
+  "token_endpoint_auth_method": "none",
+  "dpop_bound_access_tokens": true
+}
