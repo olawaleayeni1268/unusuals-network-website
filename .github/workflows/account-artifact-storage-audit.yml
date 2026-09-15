@@ -1,0 +1,34 @@
+name: Account Artifact Storage Audit
+on:
+  push:
+    branches: [ops/account-artifact-storage-cleanup-20260915]
+    paths: [.github/workflows/account-artifact-storage-audit.yml]
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inventory active Actions artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/artifacts.tsv"; : > "$OUT"; page=1
+          while :; do
+            json="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100&page=$page")"
+            count="$(jq '.artifacts | length' <<<"$json")"
+            [[ "$count" -eq 0 ]] && break
+            jq -r '.artifacts[] | select(.expired == false) | [.id,.name,.size_in_bytes,.created_at,(.workflow_run.id // 0)] | @tsv' <<<"$json" >> "$OUT"
+            [[ "$count" -lt 100 ]] && break
+            page=$((page+1))
+          done
+          echo "REPO=$GITHUB_REPOSITORY"
+          echo "ACTIVE_ARTIFACT_COUNT=$(wc -l < "$OUT")"
+          awk -F '\t' '{s+=$3} END {printf "ACTIVE_ARTIFACT_BYTES=%.0f\nACTIVE_ARTIFACT_MIB=%.2f\n",s,s/1048576}' "$OUT"
+          echo TOP_BY_SIZE_BEGIN
+          sort -t $'\t' -k3,3nr "$OUT" | head -30
+          echo TOP_BY_SIZE_END
