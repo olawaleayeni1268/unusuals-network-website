@@ -1,0 +1,1 @@
+(function(){const t=document.querySelector('.menu-toggle'),n=document.querySelector('.nav-links');if(t&&n){t.addEventListener('click',()=>{const o=n.dataset.open!=='true';n.dataset.open=String(o);t.setAttribute('aria-expanded',String(o))})}})();
