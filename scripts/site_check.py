@@ -78,6 +78,57 @@ for loc in re.findall(r'<loc>([^<]+)</loc>', sitemap):
     elif t in drafts:
         fails.append('sitemap: lists a draft page %s' % loc)
 
+# BF-09: Fail closed while app policy pages are under owner/legal review.
+# A separately approved G7 publication change must deliberately revise this gate.
+POLICY_PUBLICATION_APPROVED = False
+REQUIRED_POLICIES = (
+    'help', 'privacy', 'terms', 'safety', 'support', 'account-deletion', 'copyright',
+)
+INTERNAL_ONLY = (
+    'docs/BF-01-BLUESKY-POLICY-REFERENCE-BASELINE.md',
+    'BF-02-REFERENCE-COVERAGE-REGISTER.md',
+    'SHA256SUMS.txt',
+)
+for private_path in INTERNAL_ONLY:
+    if os.path.exists(private_path):
+        fails.append('internal-only file in deploy root: %s' % private_path)
+for policy in REQUIRED_POLICIES:
+    page = os.path.join('unusuals', policy, 'index.html')
+    if not os.path.isfile(page):
+        fails.append('missing policy page: %s' % page)
+        continue
+    html = open(page, encoding='utf-8').read()
+    expected = 'https://www.' + ALLOWED_MAIL + '/unusuals/' + policy + '/'
+    links = re.findall(r'<link\\b[^>]*>', html, re.I)
+    canonicals = []
+    for tag in links:
+        if re.search(r'\\brel="canonical"', tag, re.I):
+            found = re.search(r'\\bhref="([^"]+)"', tag, re.I)
+            canonicals.append(found.group(1) if found else '')
+    if canonicals != [expected]:
+        fails.append('%s: incorrect/missing canonical %s' % (page, canonicals))
+    if not POLICY_PUBLICATION_APPROVED:
+        if 'NOT PUBLISHED' not in html or 'REVIEW PREVIEW' not in html:
+            fails.append('%s: publication banner missing without G7 approval' % page)
+        if 'noindex' not in (meta(html, 'robots') or '').lower():
+            fails.append('%s: noindex missing without G7 approval' % page)
+    footer = re.search(r'<nav\\s+aria-label="Footer navigation"[^>]*>(.*?)</nav>', html, re.I | re.S)
+    if not footer:
+        fails.append('%s: policy footer not found' % page)
+    else:
+        for other in REQUIRED_POLICIES:
+            if 'href="../%s/"' % other not in footer.group(1):
+                fails.append('%s: missing footer link to %s' % (page, other))
+        if 'href="https://www.' + ALLOWED_MAIL + '/"' not in footer.group(1):
+            fails.append('%s: missing corporate home in policy footer' % page)
+    if policy == 'privacy' and 'privacy@' + ALLOWED_MAIL not in html:
+        fails.append('%s: privacy contact absent' % page)
+    if policy == 'account-deletion':
+        if 'mailto:privacy@' + ALLOWED_MAIL not in html:
+            fails.append('%s: external deletion contact absent' % page)
+        if 'Account%20deletion%20request' not in html:
+            fails.append('%s: deletion mailto subject absent' % page)
+
 print('== SHA-256 of checked files')
 for d, dirs, files in os.walk(ROOT):
     dirs[:] = sorted(x for x in dirs if x not in SKIP_DIRS)
