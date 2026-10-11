@@ -99,11 +99,11 @@ for policy in REQUIRED_POLICIES:
         continue
     html = open(page, encoding='utf-8').read()
     expected = 'https://www.' + ALLOWED_MAIL + '/unusuals/' + policy + '/'
-    links = re.findall(r'<link\\b[^>]*>', html, re.I)
+    links = re.findall(r'<link\b[^>]*>', html, re.I)
     canonicals = []
     for tag in links:
-        if re.search(r'\\brel="canonical"', tag, re.I):
-            found = re.search(r'\\bhref="([^"]+)"', tag, re.I)
+        if re.search(r'\brel="canonical"', tag, re.I):
+            found = re.search(r'\bhref="([^"]+)"', tag, re.I)
             canonicals.append(found.group(1) if found else '')
     if canonicals != [expected]:
         fails.append('%s: incorrect/missing canonical %s' % (page, canonicals))
@@ -112,7 +112,7 @@ for policy in REQUIRED_POLICIES:
             fails.append('%s: publication banner missing without G7 approval' % page)
         if 'noindex' not in (meta(html, 'robots') or '').lower():
             fails.append('%s: noindex missing without G7 approval' % page)
-    footer = re.search(r'<nav\\s+aria-label="Footer navigation"[^>]*>(.*?)</nav>', html, re.I | re.S)
+    footer = re.search(r'<nav\s+aria-label="Footer navigation"[^>]*>(.*?)</nav>', html, re.I | re.S)
     if not footer:
         fails.append('%s: policy footer not found' % page)
     else:
