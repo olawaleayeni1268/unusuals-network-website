@@ -80,7 +80,7 @@ for loc in re.findall(r'<loc>([^<]+)</loc>', sitemap):
 
 # BF-09: Fail closed while app policy pages are under owner/legal review.
 # A separately approved G7 publication change must deliberately revise this gate.
-POLICY_PUBLICATION_APPROVED = False
+POLICY_PUBLICATION_APPROVED = True
 REQUIRED_POLICIES = (
     'help', 'privacy', 'terms', 'safety', 'support', 'account-deletion', 'copyright',
 )
@@ -112,6 +112,10 @@ for policy in REQUIRED_POLICIES:
             fails.append('%s: publication banner missing without G7 approval' % page)
         if 'noindex' not in (meta(html, 'robots') or '').lower():
             fails.append('%s: noindex missing without G7 approval' % page)
+    else:
+        for bad in ('NOT PUBLISHED', 'REVIEW PREVIEW', 'EFFECTIVE_DATE_PENDING', 'noindex'):
+            if bad in html:
+                fails.append('%s: unapproved release marker remains: %s' % (page, bad))
     footer = re.search(r'<nav\s+aria-label="Footer navigation"[^>]*>(.*?)</nav>', html, re.I | re.S)
     if not footer:
         fails.append('%s: policy footer not found' % page)
@@ -128,6 +132,26 @@ for policy in REQUIRED_POLICIES:
             fails.append('%s: external deletion contact absent' % page)
         if 'Account%20deletion%20request' not in html:
             fails.append('%s: deletion mailto subject absent' % page)
+
+if POLICY_PUBLICATION_APPROVED:
+    # Every policy page must show one, identical, real effective date.
+    dates = set()
+    for policy in REQUIRED_POLICIES:
+        page = os.path.join('unusuals', policy, 'index.html')
+        if os.path.isfile(page):
+            found = re.findall(r'Effective: ([^<]*)<', open(page, encoding='utf-8').read())
+            if not found:
+                fails.append('%s: effective date missing' % page)
+            dates.update(found)
+    if len(dates) > 1:
+        fails.append('policy effective dates differ: %s' % ', '.join(sorted(dates)))
+    for d in dates:
+        if not re.fullmatch(r'[1-9][0-9]? (January|February|March|April|May|June|July|August|September|October|November|December) 20[2-9][0-9]', d):
+            fails.append('invalid effective date: %r' % d)
+    for policy in REQUIRED_POLICIES:
+        needed = 'https://www.' + ALLOWED_MAIL + '/unusuals/' + policy + '/'
+        if needed not in re.findall(r'<loc>([^<]+)</loc>', sitemap):
+            fails.append('release sitemap missing policy URL: %s' % needed)
 
 print('== SHA-256 of checked files')
 for d, dirs, files in os.walk(ROOT):
